@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>粉粉电子宠物</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#f4a6c8; --pink-d:#d9709f; --pink-l:#fde6f0;
+    --green:#cfe8c4; --gray:#c0c0c0; --ink:#3b2a35;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    font-family:'DotGothic16','Zpix',ui-monospace,Menlo,monospace; color:var(--ink);
+    background:
+      linear-gradient(90deg, rgba(244,166,200,.25) 50%, transparent 50%) 0 0/48px 48px,
+      linear-gradient(rgba(207,232,196,.45) 50%, transparent 50%) 0 0/48px 48px,
+      #fff7fb;
+  }
+  .stage{padding:16px}
+  .win{
+    width:320px; background:var(--gray);
+    border:2px solid #000; box-shadow:4px 4px 0 var(--pink-d);
+    border-top-color:#fff; border-left-color:#fff;
+    outline:2px solid #000;
+    user-select:none;
+  }
+  .title{
+    display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(90deg,var(--pink-d),var(--pink));
+    color:#fff; padding:3px 6px; font-size:14px;
+  }
+  .title .btns span{
+    display:inline-block; width:16px; height:14px; margin-left:3px; background:var(--gray);
+    border:1px solid #000; border-top-color:#fff; border-left-color:#fff;
+    color:#000; text-align:center; line-height:12px; font-size:11px;
+  }
+  .body{padding:10px}
+  .screen{
+    position:relative; height:190px; overflow:hidden;
+    background:
+      radial-gradient(circle at 20% 80%, #fff 0 3px, transparent 4px) 0 0/40px 40px,
+      var(--green);
+    border:2px solid #000; border-right-color:#fff; border-bottom-color:#fff;
+    display:flex; align-items:flex-end; justify-content:center;
+  }
+  .floor{position:absolute; left:0; right:0; bottom:0; height:26px; background:var(--pink-l); border-top:2px dashed var(--pink-d)}
+  #cat{width:128px; height:112px; margin-bottom:14px; position:relative; cursor:pointer; image-rendering:pixelated; animation:bob 1.6s ease-in-out infinite}
+  #cat.sleep{animation:breathe 3s ease-in-out infinite}
+  #cat.hop{animation:hop .5s ease-out}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04,.97)}}
+  @keyframes hop{0%{transform:translateY(0)}40%{transform:translateY(-26px)}100%{transform:translateY(0)}}
+  #bubble{
+    position:absolute; top:8px; left:50%; transform:translateX(-50%);
+    background:#fff; border:2px solid #000; padding:3px 8px; font-size:13px; white-space:nowrap;
+    max-width:94%; overflow:hidden; text-overflow:ellipsis;
+  }
+  .float{position:absolute; pointer-events:none; font-size:18px; animation:up 1.2s ease-out forwards}
+  @keyframes up{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-60px)}}
+  .zzz{position:absolute; right:60px; top:46px; font-size:18px; display:none; animation:bob 2s infinite}
+  .sleeping .zzz{display:block}
+  .sleeping .screen{filter:brightness(.78) saturate(.8)}
+  .stats{margin-top:10px}
+  .row{display:flex; align-items:center; gap:6px; margin:4px 0; font-size:13px}
+  .row label{width:48px}
+  .bar{flex:1; height:14px; background:#fff; border:2px solid #000; border-right-color:#fff; border-bottom-color:#fff; position:relative}
+  .bar i{position:absolute; inset:0 auto 0 0; background:repeating-linear-gradient(90deg,var(--pink-d) 0 6px,var(--pink) 6px 8px); transition:width .4s}
+  .acts{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:10px}
+  button{
+    font-family:inherit; font-size:14px; padding:6px 0; cursor:pointer; color:#000;
+    background:var(--gray); border:2px solid #000; border-top-color:#fff; border-left-color:#fff;
+    box-shadow:inset -2px -2px 0 #808080;
+  }
+  button:active{border-color:#000 #fff #fff #000; box-shadow:inset 2px 2px 0 #808080; transform:translate(1px,1px)}
+  .pin{width:100%; margin-top:8px; background:var(--pink-l)}
+  .foot{font-size:11px; text-align:center; margin-top:8px; color:#6b5560}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="win" id="pet">
+    <div class="title">
+      <span>🐾 <span id="nameTitle">粉粉</span>.exe <span id="renameBtn" title="改名" style="cursor:pointer">✏️</span></span>
+      <span class="btns"><span>_</span><span>□</span><span>×</span></span>
+    </div>
+    <div class="body">
+      <div class="screen" id="screen">
+        <div id="bubble">你好呀～</div>
+        <div class="floor"></div>
+        <div class="zzz">z Z z</div>
+        <svg id="cat" viewBox="0 0 16 12" shape-rendering="crispEdges"></svg>
+      </div>
+      <div class="stats">
+        <div class="row"><label>饱食</label><div class="bar"><i id="b-hunger"></i></div></div>
+        <div class="row"><label>心情</label><div class="bar"><i id="b-mood"></i></div></div>
+        <div class="row"><label>精力</label><div class="bar"><i id="b-energy"></i></div></div>
+      </div>
+      <div class="acts">
+        <button id="feed">🍙 喂食</button>
+        <button id="play">🧶 玩耍</button>
+        <button id="sleepBtn">💤 睡觉</button>
+      </div>
+      <button class="pin" id="pin">📌 悬浮到桌面</button>
+      <div class="foot">点小猫可以摸摸它 · 点 ✏️ 或双击名字改名</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- 像素小猫 ---------- */
+const BODY = [
+  ".oo..........oo.",
+  ".opo........opo.",
+  ".owwo......owwo.",
+  ".owwwoooooowwwo.",
+  "owwwwwwwwwwwwwwo",
+  "owwwwwwwwwwwwwwo",
+  "owwwwwwwwwwwwwwo",
+  "owwwwwwwwwwwwwwo",
+  "owwwwwwwwwwwwwwo",
+  ".owwwwwwwwwwwwo.",
+  "..oowwwwwwwwoo..",
+  "....oooooooo....",
+];
+const COLORS = {o:'#3b2a35', w:'#ffffff', p:'#f4a6c8'};
+const cat = document.getElementById('cat');
+let blinking = false;
+
+function px(x,y,c,w=1,h=1){return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`}
+function face(kind){
+  const d='#3b2a35', p='#f4a6c8', t='#7fc4ff';
+  let s='';
+  // 腮红
+  s+=px(2,8,p,2,1)+px(12,8,p,2,1);
+  if(kind==='normal'){
+    s+=px(4,6,d,1,2)+px(11,6,d,1,2);
+    s+=px(7,7,p,2,1)+px(7,8,d,1,1)+px(8,8,d,1,1);
+  }else if(kind==='blink'){
+    s+=px(3,7,d,3,1)+px(10,7,d,3,1);
+    s+=px(7,7,p,2,1)+px(7,8,d,2,1);
+  }else if(kind==='happy'){
+    s+=px(3,7,d)+px(4,6,d)+px(5,7,d)+px(10,7,d)+px(11,6,d)+px(12,7,d);
+    s+=px(7,7,p,2,1)+px(6,8,d)+px(9,8,d)+px(7,9,d,2,1);
+  }else if(kind==='sad'){
+    s+=px(4,6,d,1,2)+px(11,6,d,1,2)+px(4,8,t)+px(11,8,t);
+    s+=px(7,7,p,2,1)+px(7,8,d,2,1)+px(6,9,d)+px(9,9,d);
+  }else if(kind==='sleep'){
+    s+=px(3,7,d,3,1)+px(10,7,d,3,1);
+    s+=px(7,7,p,2,1)+px(7,8,d,2,1);
+  }else if(kind==='eat'){
+    s+=px(3,7,d)+px(4,6,d)+px(5,7,d)+px(10,7,d)+px(11,6,d)+px(12,7,d);
+    s+=px(7,7,p,2,1)+px(7,8,d,2,2);
+  }
+  return s;
+}
+function drawCat(kind){
+  let s='';
+  BODY.forEach((row,y)=>{
+    [...row].forEach((ch,x)=>{ if(ch!=='.') s+=px(x,y,COLORS[ch]); });
+  });
+  cat.innerHTML = s + face(kind);
+}
+
+/* ---------- 状态 ---------- */
+const KEY='pixel-pet-v1';
+let S = {hunger:70, mood:70, energy:80, sleeping:false, name:'粉粉', last:Date.now()};
+try{ const saved=JSON.parse(localStorage.getItem(KEY)); if(saved) S=Object.assign(S,saved); }catch(e){}
+const clamp=v=>Math.max(0,Math.min(100,v));
+
+// 离线补算（最多补 6 小时）
+(function catchUp(){
+  const mins=Math.min((Date.now()-S.last)/60000, 360);
+  const ticks=mins*12/ 1; // 每 5 秒一次 tick => 每分钟 12 次
+  S.hunger=clamp(S.hunger-ticks*0.05);
+  S.mood=clamp(S.mood-ticks*0.04);
+  S.energy=clamp(S.energy+(S.sleeping?ticks*0.15:-ticks*0.03));
+})();
+
+function save(){ S.last=Date.now(); try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} }
+const $=id=>document.getElementById(id);
+const petEl=$('pet');
+
+function say(t){ $('bubble').textContent=t; }
+function floatEmoji(e){
+  const f=document.createElement('div'); f.className='float'; f.textContent=e;
+  f.style.left=(40+Math.random()*50)+'%'; f.style.bottom='90px';
+  $('screen').appendChild(f); setTimeout(()=>f.remove(),1200);
+}
+function hop(){ cat.classList.remove('hop'); void cat.offsetWidth; cat.classList.add('hop'); setTimeout(()=>cat.classList.remove('hop'),500); }
+
+function currentFace(){
+  if(S.sleeping) return 'sleep';
+  if(S.hunger<25||S.mood<25) return 'sad';
+  if(S.mood>80&&S.hunger>50) return 'happy';
+  return 'normal';
+}
+function render(){
+  $('b-hunger').style.width=S.hunger+'%';
+  $('b-mood').style.width=S.mood+'%';
+  $('b-energy').style.width=S.energy+'%';
+  $('nameTitle').textContent=S.name;
+  document.title=S.name+'的小窝';
+  document.getElementById('pet').classList.toggle('sleeping',S.sleeping);
+  cat.classList.toggle('sleep',S.sleeping);
+  $('sleepBtn').textContent=S.sleeping?'☀️ 叫醒':'💤 睡觉';
+  if(!blinking) drawCat(currentFace());
+  save();
+}
+function idleSay(){
+  if(S.sleeping) return say('zzz…');
+  if(S.hunger<25) return say('肚子咕咕叫…');
+  if(S.mood<25) return say('好无聊呜呜…');
+  if(S.energy<20) return say('好困…想睡觉');
+  const lines=['今天也要元气满满！','(=^･ω･^=)','想你了～','要不要陪我玩？','喵～'];
+  say(lines[Math.floor(Math.random()*lines.length)]);
+}
+
+/* ---------- 互动 ---------- */
+$('feed').onclick=()=>{
+  if(S.sleeping) return say('它还在睡觉呢…');
+  if(S.hunger>95) return say('吃不下啦～');
+  S.hunger=clamp(S.hunger+25); S.mood=clamp(S.mood+3);
+  drawCat('eat'); blinking=true; setTimeout(()=>{blinking=false;render()},900);
+  floatEmoji('🍙'); say('好吃好吃！'); hop(); render();
+};
+$('play').onclick=()=>{
+  if(S.sleeping) return say('嘘…它在睡觉');
+  if(S.energy<15) return say('太累了，玩不动啦');
+  S.mood=clamp(S.mood+20); S.energy=clamp(S.energy-10); S.hunger=clamp(S.hunger-5);
+  floatEmoji('🧶'); floatEmoji('✨'); say('好开心！再来再来！'); hop(); render();
+};
+$('sleepBtn').onclick=()=>{
+  S.sleeping=!S.sleeping;
+  say(S.sleeping?'晚安…zzz':'早上好！(´▽`)'); render();
+};
+cat.onclick=()=>{
+  if(S.sleeping){ S.sleeping=false; say('呜…被吵醒了'); }
+  else { S.mood=clamp(S.mood+3); floatEmoji('💗'); say('呼噜呼噜～'); hop(); }
+  render();
+};
+function startRename(){
+  const el=$('nameTitle');
+  if(el.querySelector('input')) return;
+  const doc=el.ownerDocument;
+  const inp=doc.createElement('input');
+  inp.value=S.name; inp.maxLength=8;
+  inp.style.cssText='font-family:inherit;font-size:14px;width:90px;border:2px solid #000;padding:0 3px;';
+  el.textContent=''; el.appendChild(inp); inp.focus(); inp.select();
+  let done=false;
+  const finish=ok=>{
+    if(done) return; done=true;
+    const n=inp.value.trim();
+    if(ok&&n) S.name=n.slice(0,8);
+    el.textContent=S.name; render(); say('我叫'+S.name+'！');
+  };
+  inp.onkeydown=e=>{ if(e.key==='Enter') finish(true); if(e.key==='Escape') finish(false); };
+  inp.onblur=()=>finish(true);
+}
+$('nameTitle').ondblclick=startRename;
+$('renameBtn').onclick=startRename;
+
+/* ---------- 时间流逝 & 眨眼 ---------- */
+setInterval(()=>{
+  S.hunger=clamp(S.hunger-0.5);
+  S.mood=clamp(S.mood-(S.hunger<25?0.8:0.3));
+  S.energy=clamp(S.energy+(S.sleeping?1.5:-0.3));
+  if(S.sleeping&&S.energy>=100){ S.sleeping=false; say('睡饱啦！'); }
+  if(!S.sleeping&&S.energy<=5){ S.sleeping=true; say('撑不住了…zzz'); }
+  render();
+},5000);
+setInterval(()=>{ if(Math.random()<.6) idleSay(); },9000);
+(function blinkLoop(){
+  setTimeout(()=>{
+    if(!S.sleeping&&!blinking){ blinking=true; drawCat('blink'); setTimeout(()=>{blinking=false; drawCat(currentFace());},160); }
+    blinkLoop();
+  },2000+Math.random()*3000);
+})();
+
+/* ---------- 悬浮到桌面（Chrome 画中画窗口） ---------- */
+$('pin').onclick=async()=>{
+  if(!('documentPictureInPicture' in window)){
+    say('请用电脑版 Chrome/Edge 打开本文件');
+    return;
+  }
+  try{
+    const pw=await documentPictureInPicture.requestWindow({width:350,height:470});
+    [...document.styleSheets].forEach(ss=>{
+      try{
+        const s=pw.document.createElement('style');
+        s.textContent=[...ss.cssRules].map(r=>r.cssText).join('\n');
+        pw.document.head.appendChild(s);
+      }catch(e){
+        if(ss.href){const l=pw.document.createElement('link');l.rel='stylesheet';l.href=ss.href;pw.document.head.appendChild(l);}
+      }
+    });
+    pw.document.body.style.cssText='margin:0;background:#fff7fb;display:flex;justify-content:center;padding-top:8px';
+    pw.document.body.append(petEl);
+    pw.addEventListener('pagehide',()=>{ $('stage').append(petEl); });
+  }catch(e){ say('悬浮失败：请下载文件后用Chrome直接打开'); }
+};
+
+render();
+idleSay();
+</script>
+</body>
+</html>
